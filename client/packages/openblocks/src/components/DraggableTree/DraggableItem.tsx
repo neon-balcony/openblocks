@@ -17,12 +17,7 @@ const Wrapper = styled.div<{
   position: relative;
   width: 100%;
   height: ${(props) => props.itemHeight ?? 30}px;
-  /* border: 1px solid #d7d9e0; */
-  border-radius: 4px;
   margin-bottom: ${(props) => props.positionLineHeight ?? 4}px;
-  display: flex;
-  /* padding: 0 8px; */
-  align-items: center;
   opacity: ${(props) => (props.dragging ? "0.5" : 1)};
 
   &::before {
