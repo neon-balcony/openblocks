@@ -26,6 +26,11 @@ export const isMac = (() => {
   return !platform ? false : /Mac/.test(platform);
 })();
 
+export function isIOS() {
+  const userAgent = window.navigator.userAgent;
+  return userAgent.match(/iPad/i) || userAgent.match(/iPhone/i);
+}
+
 const BASE64_STRING_REGEX = /^([A-Za-z\d+/]{4})*([A-Za-z\d+/]{3}=|[A-Za-z\d+/]{2}==)?$/;
 
 export const isBase64String = (data: any) => {
