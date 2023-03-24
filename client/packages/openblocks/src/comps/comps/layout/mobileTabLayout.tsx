@@ -46,14 +46,12 @@ const TabLayoutViewContainer = styled.div`
 const TabBarWrapper = styled.div<{ readOnly: boolean }>`
   max-width: inherit;
   background: white;
-  margin: 0 auto;
-  position: fixed;
-  bottom: 0;
-  left: 0;
+  position: absolute;
+  bottom: ${(props) => (props.readOnly ? -TabBarHeight : 0)}px;
+  left: ${(props) => (props.readOnly ? 0 : 16)}px;
   right: 0;
   width: ${(props) => (props.readOnly ? "100%" : "418px")};
   z-index: ${Layers.tabBar};
-  padding-bottom: env(safe-area-inset-bottom, 0);
 
   .adm-tab-bar-wrap {
     overflow: auto;
@@ -187,7 +185,9 @@ MobileTabLayoutTmp = withViewFn(MobileTabLayoutTmp, (comp) => {
 
   return (
     <CanvasContainer maxWidth={MaxWidth} id={CanvasContainerID}>
-      <EditorContainer>{appView}</EditorContainer>
+      <EditorContainer style={{ height: "calc(100% - 56px)", paddingBottom: 0 }}>
+        {appView}
+      </EditorContainer>
       {tabBarView}
     </CanvasContainer>
   );

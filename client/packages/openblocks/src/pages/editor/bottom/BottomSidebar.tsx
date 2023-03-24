@@ -335,12 +335,9 @@ interface ColumnDivProps {
 const ColumnDiv = styled.div<ColumnDivProps>`
   width: 100%;
   height: 25px;
-  display: flex;
   user-select: none;
   padding-left: 2px;
   padding-right: 15px;
-  /* background-color: #ffffff; */
-  /* margin: 2px 0; */
   background-color: ${(props) => (props.isOverlay ? "rgba(255, 255, 255, 0.11)" : "")};
 
   &&& {

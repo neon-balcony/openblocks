@@ -42,6 +42,7 @@ import { DefaultPanelStatus, getPanelStatus, savePanelStatus } from "util/localS
 import Bottom from "./bottom/BottomPanel";
 import { LeftContent } from "./LeftContent";
 import { isAggregationApp } from "util/appUtils";
+import { isIOS } from "util/commonUtils";
 
 const HookCompContainer = styled.div`
   pointer-events: none;
@@ -244,14 +245,17 @@ function EditorView(props: EditorViewProps) {
   }, [editorState]);
 
   useLayoutEffect(() => {
+    if (!isIOS()) {
+      return;
+    }
+
     function updateSize() {
       setHeight(window.innerHeight);
     }
 
-    const eventType = "orientationchange" in window ? "orientationchange" : "resize";
-    window.addEventListener(eventType, updateSize);
+    window.addEventListener("resize", updateSize);
     updateSize();
-    return () => window.removeEventListener(eventType, updateSize);
+    return () => window.removeEventListener("resize", updateSize);
   }, []);
 
   const hideBodyHeader = useTemplateViewMode();

@@ -18,7 +18,7 @@ public class ClickHouseDatasourceConfig extends SqlBasedDatasourceConnectionConf
     private static final long DEFAULT_PORT = 8123L;
 
     @Builder
-    protected ClickHouseDatasourceConfig(String database, String username, String password, String host, Long port, boolean usingSsl,
+    public ClickHouseDatasourceConfig(String database, String username, String password, String host, Long port, boolean usingSsl,
             String serverTimezone, boolean isReadonly, boolean enableTurnOffPreparedStatement, Map<String, Object> extParams) {
         super(database, username, password, host, port, usingSsl, serverTimezone, isReadonly, enableTurnOffPreparedStatement, extParams);
     }

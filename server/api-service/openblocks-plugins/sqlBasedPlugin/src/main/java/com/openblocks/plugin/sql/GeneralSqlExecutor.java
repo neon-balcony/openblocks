@@ -30,6 +30,7 @@ import javax.annotation.Nonnull;
 
 import org.apache.commons.lang3.tuple.Pair;
 
+import com.openblocks.plugin.sql.StatementInput.UpdateOrDeleteSingleRowStatementInput;
 import com.openblocks.sdk.exception.PluginException;
 import com.openblocks.sdk.models.QueryExecutionResult;
 import com.openblocks.sdk.plugin.common.sql.ResultSetParser;
@@ -161,7 +162,12 @@ public class GeneralSqlExecutor {
             if (statementInput.isPreparedStatement()) {
                 String sql = statementInput.getSql();
                 List<Object> params = statementInput.getParams();
-                var statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+                PreparedStatement statement;
+                if (supportGenerateKeys) {
+                    statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+                } else {
+                    statement = connection.prepareStatement(sql);
+                }
 
                 bindPreparedStatementParams(statement, params);
                 var isResultSet = statement.execute();
@@ -243,7 +249,7 @@ public class GeneralSqlExecutor {
         return array;
     }
 
-    private void bindParam(int bindIndex, Object value, PreparedStatement preparedStatement, String bindKeyName) throws SQLException {
+    protected void bindParam(int bindIndex, Object value, PreparedStatement preparedStatement, String bindKeyName) throws SQLException {
         if (value == null) {
             preparedStatement.setNull(bindIndex, Types.NULL);
             return;
@@ -301,62 +307,5 @@ public class GeneralSqlExecutor {
         throw new PluginException(PREPARED_STATEMENT_BIND_PARAMETERS_ERROR, "PS_BIND_ERROR", bindKeyName, value.getClass().getSimpleName());
     }
 
-    public static class StatementInput {
 
-        private final boolean preparedStatement;
-        private final String sql;
-        private final List<Object> params;
-
-        private StatementInput(boolean preparedStatement, String sql, List<Object> params) {
-            this.preparedStatement = preparedStatement;
-            this.sql = sql;
-            this.params = params;
-        }
-
-        public static StatementInput fromSql(boolean preparedStatement, String sql, List<Object> params) {
-            return new StatementInput(preparedStatement, sql, params);
-        }
-
-        public static StatementInput fromUpdateOrDeleteSingleRowSql(UpdateOrDeleteSingleCommandRenderResult updateOrDeleteSingle) {
-            return new UpdateOrDeleteSingleRowStatementInput(updateOrDeleteSingle.sql(), updateOrDeleteSingle.bindParams(),
-                    updateOrDeleteSingle.getSelectQuery(), updateOrDeleteSingle.getSelectBindParams());
-        }
-
-        public boolean isPreparedStatement() {
-            return preparedStatement;
-        }
-
-        public String getSql() {
-            return sql;
-        }
-
-        public List<Object> getParams() {
-            return params;
-        }
-
-    }
-
-    public static class UpdateOrDeleteSingleRowStatementInput extends StatementInput {
-
-        private final String selectSql;
-        private final List<Object> selectParams;
-
-        private UpdateOrDeleteSingleRowStatementInput(String sql, List<Object> params, String selectSql, List<Object> selectParams) {
-            super(true, sql, params);
-            this.selectSql = selectSql;
-            this.selectParams = selectParams;
-        }
-
-        public StatementInput getSelectInput() {
-            return StatementInput.fromSql(isPreparedStatement(), selectSql(), selectBindParams());
-        }
-
-        public String selectSql() {
-            return selectSql;
-        }
-
-        public List<Object> selectBindParams() {
-            return selectParams;
-        }
-    }
 }
