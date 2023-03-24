@@ -21,6 +21,7 @@ import static com.openblocks.plugin.postgres.model.DataType.BOOLEAN;
 import static com.openblocks.plugin.postgres.model.DataType.DOUBLE;
 import static com.openblocks.plugin.postgres.model.DataType.FLOAT;
 import static com.openblocks.plugin.postgres.model.DataType.INTEGER;
+import static com.openblocks.plugin.postgres.model.DataType.JSON_OBJECT;
 import static com.openblocks.plugin.postgres.model.DataType.LONG;
 import static com.openblocks.plugin.postgres.model.DataType.STRING;
 import static com.openblocks.plugin.postgres.utils.PostgresDataTypeUtils.PostgresDataType.BOOL;
@@ -30,9 +31,16 @@ import static com.openblocks.plugin.postgres.utils.PostgresDataTypeUtils.Postgre
 import static com.openblocks.plugin.postgres.utils.PostgresDataTypeUtils.PostgresDataType.INT;
 import static com.openblocks.plugin.postgres.utils.PostgresDataTypeUtils.PostgresDataType.INT4;
 import static com.openblocks.plugin.postgres.utils.PostgresDataTypeUtils.PostgresDataType.INT8;
+import static com.openblocks.plugin.postgres.utils.PostgresDataTypeUtils.PostgresDataType.JSON;
+import static com.openblocks.plugin.postgres.utils.PostgresDataTypeUtils.PostgresDataType.JSONB;
 import static com.openblocks.plugin.postgres.utils.PostgresDataTypeUtils.PostgresDataType.TEXT;
 import static com.openblocks.plugin.postgres.utils.PostgresDataTypeUtils.PostgresDataType.TIME;
+import static com.openblocks.plugin.postgres.utils.PostgresDataTypeUtils.PostgresDataType.TIMESTAMP;
 import static com.openblocks.plugin.postgres.utils.PostgresDataTypeUtils.PostgresDataType.VARCHAR;
+import static com.openblocks.sdk.util.JsonUtils.fromJsonList;
+import static com.openblocks.sdk.util.JsonUtils.readTree;
+import static com.openblocks.sdk.util.JsonUtils.toJson;
+import static com.openblocks.sdk.util.JsonUtils.toJsonThrows;
 
 import java.lang.reflect.Field;
 import java.sql.Date;
@@ -48,6 +56,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.openblocks.plugin.postgres.model.DataType;
 
 public class PostgresDataTypeUtils {
@@ -81,9 +90,12 @@ public class PostgresDataTypeUtils {
         public static final String BOOL = "bool";
         public static final String DATE = "date";
         public static final String TIME = "time";
+        public static final String TIMESTAMP = "timestamp";
         public static final String FLOAT8 = "float8";
         public static final String TEXT = "text";
         public static final String INT = "int";
+        public static final String JSON = "json";
+        public static final String JSONB = "jsonb";
 
         public Set dataTypes = null;
 
@@ -125,9 +137,12 @@ public class PostgresDataTypeUtils {
             dataTypeMapper.put(BOOL, BOOLEAN);
             dataTypeMapper.put(DATE, DataType.DATE);
             dataTypeMapper.put(TIME, DataType.TIME);
+            dataTypeMapper.put(TIMESTAMP, DataType.TIMESTAMP);
             dataTypeMapper.put(FLOAT8, DOUBLE);
             dataTypeMapper.put(TEXT, STRING);
             dataTypeMapper.put(INT, INTEGER);
+            dataTypeMapper.put(JSON, JSON_OBJECT);
+            dataTypeMapper.put(JSONB, JSON_OBJECT);
         }
 
         return dataTypeMapper;
@@ -211,19 +226,61 @@ public class PostgresDataTypeUtils {
             }
             case ARRAY -> {
                 if (!(value instanceof Collection<?>)) {
-                    return String.valueOf(value);
+                    return fromJsonList(toJson(value), Object.class);
                 }
                 return value;
             }
             case JSON_OBJECT -> {
-                if (value instanceof Map<?, ?> || value instanceof Collection<?>) {
-                    return value;
+                try {
+                    if (value instanceof String str) {
+                        return readTree(str);
+                    }
+                    return readTree(toJsonThrows(value));
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
                 }
-                return String.valueOf(value);
             }
             default -> {
                 return String.valueOf(value);
             }
         }
     }
+
+    public static String getPostgresType(Object input) {
+
+        if (input instanceof String) {
+            return PostgresDataType.VARCHAR;
+        }
+
+        if (input instanceof Collection<?>) {
+            throw new IllegalArgumentException("Array of Array datatype is not supported.");
+        }
+
+        if (input instanceof Map<?, ?>) {
+            throw new IllegalArgumentException("Array of JSON datatype is not supported.");
+        }
+
+        if (input instanceof Integer) {
+            return PostgresDataType.INT4;
+        }
+
+        if (input instanceof Long) {
+            return PostgresDataType.INT8;
+        }
+
+        if (input instanceof Float) {
+            return PostgresDataType.DECIMAL;
+        }
+
+        if (input instanceof Double) {
+            return PostgresDataType.FLOAT8;
+        }
+
+        if (input instanceof Boolean) {
+            return PostgresDataType.BOOL;
+        }
+
+        return PostgresDataType.VARCHAR;
+    }
+
 }
