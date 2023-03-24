@@ -68,30 +68,10 @@ export const ColumnLinksComp = (function () {
   return new ColumnTypeCompBuilder(
     childrenMap,
     (props) => {
-      const menu = props.options.length > 3 && (
-        <Menu>
-          {props.options
-            .filter((o) => !o.hidden)
-            .slice(3)
-            .map((option, index) => (
-              <Menu.Item key={index}>
-                <MenuLinkWrapper>
-                  <ColumnLink
-                    disabled={option.disabled}
-                    label={option.label}
-                    onClick={option.onClick}
-                  />
-                </MenuLinkWrapper>
-              </Menu.Item>
-            ))}
-        </Menu>
-      );
-
       return (
         <LinksWrapper>
           {props.options
             .filter((o) => !o.hidden)
-            .slice(0, 3)
             .map((option, i) => (
               <ColumnLink
                 key={i}
@@ -100,11 +80,6 @@ export const ColumnLinksComp = (function () {
                 onClick={option.onClick}
               />
             ))}
-          {menu && (
-            <Dropdown overlay={menu} trigger={["hover"]}>
-              <EllipsisOutlined onClick={(e) => e.preventDefault()} />
-            </Dropdown>
-          )}
         </LinksWrapper>
       );
     },
