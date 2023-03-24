@@ -162,7 +162,12 @@ public class GeneralSqlExecutor {
             if (statementInput.isPreparedStatement()) {
                 String sql = statementInput.getSql();
                 List<Object> params = statementInput.getParams();
-                var statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+                PreparedStatement statement;
+                if (supportGenerateKeys) {
+                    statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+                } else {
+                    statement = connection.prepareStatement(sql);
+                }
 
                 bindPreparedStatementParams(statement, params);
                 var isResultSet = statement.execute();

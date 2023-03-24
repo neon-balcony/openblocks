@@ -28,7 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ClickHouseQueryExecutor extends SqlBasedQueryExecutor {
 
     public ClickHouseQueryExecutor() {
-        super(new GeneralSqlExecutor());
+        super(new GeneralSqlExecutor(false));
     }
 
     @Override
